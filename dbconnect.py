@@ -1,17 +1,19 @@
-import psycopg2
-from psycopg2.extras import RealDictCursor
+from sqlmodel import SQLModel, create_engine, Session
 
-def connect_db():
-    try:
-        conn = psycopg2.connect(
-            host="localhost",
-            database="fastapi",
-            user="postgres",
-            password="Ayobami@090499",
-            cursor_factory = RealDictCursor   
-        )
-        cursor = conn.cursor()
-        print("Database connection was successful")
-    except Exception as error:
-        print("Database connection failed")
-        print("Error:", error)
+database="fastapi"
+postgres_url = f"postgresql://postgres:Ayobami%40090499@localhost/{database}"
+
+engine= create_engine(postgres_url)
+
+#create the database
+SQLModel.metadata.create_all(engine)
+
+#print to verify
+print("Database created successfully")
+
+#dependency
+
+
+def get_session():
+    with Session(engine) as session:
+        yield session

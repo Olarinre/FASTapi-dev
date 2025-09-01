@@ -1,13 +1,36 @@
 import random
-from fastapi import FastAPI, Response, status, HTTPException
+from fastapi import FastAPI, Response, status, HTTPException, Depends
 from fastapi.params import Body
 from pydantic import BaseModel
-import dbconnect
+import psycopg2
+from psycopg2.extras import RealDictCursor
+from sqlmodel import Session, select
+from models import Posts
+from dbconnect import get_session
 
-#postgresql db connection
-dbconnect.connect_db()
-#end of db connection.
 
+
+
+
+
+
+
+"""try:
+    conn = psycopg2.connect(
+        host="localhost",
+        database="fastapi",
+        user="postgres",
+        password="Ayobami@090499",
+        cursor_factory = RealDictCursor   
+    )
+    cursor = conn.cursor()
+    print("Database connection was successful")
+except Exception as error:
+    print("Database connection failed")
+    print("Error:", error)
+#end of db conne
+# ction.
+"""
 
 posts_db = [
 
@@ -37,32 +60,11 @@ app = FastAPI()
 async def root():
     return {'message': 'hello world1'}
 
-@app.get("/posts")
-def get_post():
-    return {'message': posts_db}
-
-@app.post('/posts')
-def create_post(newpost: New_post):
-    post_dict = newpost.dict()
-    post_dict['id'] = random.randint(1, 1000000)
-    posts_db.append(post_dict)
-
-    return {'message': post_dict}
-
-
-
-@app.get('/posts/{id}')
-def get_singlepost(id: int, response: Response):
-    post = find_post(id)
-    if not post:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
-                            detail=f'post with id: {id} was not found')
-        #response.status_code = status.HTTP_404_NOT_FOUND
-    return {'details': post}
-
-
-
-
+#get all posts
+@app.get('/sqlmodel')
+def get_posts(session: Session = Depends(get_session)):
+    posts = session.exec(select(Posts)).all()
+    return posts
 
 
 
